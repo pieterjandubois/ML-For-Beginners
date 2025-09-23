@@ -8,7 +8,7 @@
 
 ## Introduction
 
-In this final lesson on Regression, one of the basic _classic_ ML techniques, we will take a look at Logistic Regression. You would use this technique to discover patterns to predict binary categories. Is this candy chocolate or not? Is this disease contagious or not? Will this customer choose this product or not? 
+In this final lesson on Regression, one of the basic _classic_ ML techniques, we will take a look at Logistic Regression. You would use this technique to discover patterns to predict binary categories. Is this candy chocolate or not? Is this disease contagious or not? Will this customer choose this product or not?
 
 In this lesson, you will learn:
 
@@ -44,6 +44,7 @@ Logistic regression differs from linear regression, which you learned about prev
 Logistic regression does not offer the same features as linear regression. The former offers a prediction about a binary category ("white or not white") whereas the latter is capable of predicting continual values, for example given the origin of a pumpkin and the time of harvest, _how much its price will rise_.
 
 ![Pumpkin classification Model](./images/pumpkin-classifier.png)
+
 > Infographic by [Dasani Madipalli](https://twitter.com/dasani_decoded)
 
 ### Other classifications
@@ -75,54 +76,55 @@ First, clean the data a bit, dropping null values and selecting only some of the
 
 1. Add the following code:
 
-    ```python
-  
-    columns_to_select = ['City Name','Package','Variety', 'Origin','Item Size', 'Color']
-    pumpkins = full_pumpkins.loc[:, columns_to_select]
+   ```python
 
-    pumpkins.dropna(inplace=True)
-    ```
+   columns_to_select = ['City Name','Package','Variety', 'Origin','Item Size', 'Color']
+   pumpkins = full_pumpkins.loc[:, columns_to_select]
 
-    You can always take a peek at your new dataframe:
+   pumpkins.dropna(inplace=True)
+   ```
 
-    ```python
-    pumpkins.info
-    ```
+   You can always take a peek at your new dataframe:
+
+   ```python
+   pumpkins.info
+   ```
 
 ### Visualization - categorical plot
 
-By now you have loaded up the [starter notebook](./notebook.ipynb) with pumpkin data once again and cleaned it so as to preserve a dataset containing a few variables, including `Color`. Let's visualize the dataframe in the notebook using a different library: [Seaborn](https://seaborn.pydata.org/index.html), which is built on Matplotlib which we used earlier. 
+By now you have loaded up the [starter notebook](./notebook.ipynb) with pumpkin data once again and cleaned it so as to preserve a dataset containing a few variables, including `Color`. Let's visualize the dataframe in the notebook using a different library: [Seaborn](https://seaborn.pydata.org/index.html), which is built on Matplotlib which we used earlier.
 
 Seaborn offers some neat ways to visualize your data. For example, you can compare distributions of the data for each `Variety` and `Color` in a categorical plot.
 
 1. Create such a plot by using the `catplot` function, using our pumpkin data `pumpkins`, and specifying a color mapping for each pumpkin category (orange or white):
 
-    ```python
-    import seaborn as sns
-    
-    palette = {
-    'ORANGE': 'orange',
-    'WHITE': 'wheat',
-    }
+   ```python
+   import seaborn as sns
 
-    sns.catplot(
-    data=pumpkins, y="Variety", hue="Color", kind="count",
-    palette=palette, 
-    )
-    ```
+   palette = {
+   'ORANGE': 'orange',
+   'WHITE': 'wheat',
+   }
 
-    ![A grid of visualized data](images/pumpkins_catplot_1.png)
+   sns.catplot(
+   data=pumpkins, y="Variety", hue="Color", kind="count",
+   palette=palette,
+   )
+   ```
 
-    By observing the data, you can see how the Color data relates to Variety.
+   ![A grid of visualized data](images/pumpkins_catplot_1.png)
 
-    ✅ Given this categorical plot, what are some interesting explorations you can envision?
+   By observing the data, you can see how the Color data relates to Variety.
+
+   ✅ Given this categorical plot, what are some interesting explorations you can envision?
 
 ### Data pre-processing: feature and label encoding
+
 Our pumpkins dataset contains string values for all its columns. Working with categorical data is intuitive for humans but not for machines. Machine learning algorithms work well with numbers. That's why encoding is a very important step in the data pre-processing phase, since it enables us to turn categorical data into numerical data, without losing any information. Good encoding leads to building a good model.
 
 For feature encoding there are two main types of encoders:
 
-1. Ordinal encoder: it suits well for ordinal variables, which are categorical variables where their data follows a logical ordering, like the `Item Size` column in our dataset. It creates a mapping such that each category is represented by a number, which is the order of the category in the column.
+1.  Ordinal encoder: it suits well for ordinal variables, which are categorical variables where their data follows a logical ordering, like the `Item Size` column in our dataset. It creates a mapping such that each category is represented by a number, which is the order of the category in the column.
 
     ```python
     from sklearn.preprocessing import OrdinalEncoder
@@ -132,27 +134,29 @@ For feature encoding there are two main types of encoders:
     ordinal_encoder = OrdinalEncoder(categories=item_size_categories)
     ```
 
-2. Categorical encoder: it suits well for nominal variables, which are categorical variables where their data does not follow a logical ordering, like all the features different from `Item Size` in our dataset. It is a one-hot encoding, which means that each category is represented by a binary column: the encoded variable is equal to 1 if the pumpkin belongs to that Variety and 0 otherwise.
+2.  Categorical encoder: it suits well for nominal variables, which are categorical variables where their data does not follow a logical ordering, like all the features different from `Item Size` in our dataset. It is a one-hot encoding, which means that each category is represented by a binary column: the encoded variable is equal to 1 if the pumpkin belongs to that Variety and 0 otherwise.
 
-    ```python
-    from sklearn.preprocessing import OneHotEncoder
+        ```python
+        from sklearn.preprocessing import OneHotEncoder
 
-    categorical_features = ['City Name', 'Package', 'Variety', 'Origin']
-    categorical_encoder = OneHotEncoder(sparse_output=False)
-    ```
-Then, `ColumnTransformer` is used to combine multiple encoders into a single step and apply them to the appropriate columns.
+        categorical_features = ['City Name', 'Package', 'Variety', 'Origin']
+        categorical_encoder = OneHotEncoder(sparse_output=False)
+        ```
+
+    Then, `ColumnTransformer` is used to combine multiple encoders into a single step and apply them to the appropriate columns.
 
 ```python
     from sklearn.compose import ColumnTransformer
-    
+
     ct = ColumnTransformer(transformers=[
         ('ord', ordinal_encoder, ordinal_features),
         ('cat', categorical_encoder, categorical_features)
         ])
-    
+
     ct.set_output(transform='pandas')
     encoded_features = ct.fit_transform(pumpkins)
 ```
+
 On the other hand, to encode the label, we use the scikit-learn `LabelEncoder` class, which is a utility class to help normalize labels such that they contain only values between 0 and n_classes-1 (here, 0 and 1).
 
 ```python
@@ -161,17 +165,19 @@ On the other hand, to encode the label, we use the scikit-learn `LabelEncoder` c
     label_encoder = LabelEncoder()
     encoded_label = label_encoder.fit_transform(pumpkins['Color'])
 ```
+
 Once we have encoded the features and the label, we can merge them into a new dataframe `encoded_pumpkins`.
 
 ```python
     encoded_pumpkins = encoded_features.assign(Color=encoded_label)
 ```
+
 ✅ What are the advantages of using an ordinal encoder for the `Item Size` column?
 
 ### Analyse relationships between variables
 
 Now that we have pre-processed our data, we can analyse the relationships between the features and the label to grasp an idea of how well the model will be able to predict the label given the features.
-The best way to perform this kind of analysis is plotting the data. We'll be using again the Seaborn `catplot` function, to visualize the relationships between `Item Size`,  `Variety` and `Color` in a categorical plot. To better plot the data we'll be using the encoded `Item Size` column and the unencoded `Variety` column.
+The best way to perform this kind of analysis is plotting the data. We'll be using again the Seaborn `catplot` function, to visualize the relationships between `Item Size`, `Variety` and `Color` in a categorical plot. To better plot the data we'll be using the encoded `Item Size` column and the unencoded `Variety` column.
 
 ```python
     palette = {
@@ -190,28 +196,28 @@ The best way to perform this kind of analysis is plotting the data. We'll be usi
     g.set(xlabel="Item Size", ylabel="").set(xlim=(0,6))
     g.set_titles(row_template="{row_name}")
 ```
+
 ![A catplot of visualized data](images/pumpkins_catplot_2.png)
 
 ### Use a swarm plot
 
-Since Color is a binary category (White or Not), it needs 'a [specialized approach](https://seaborn.pydata.org/tutorial/categorical.html?highlight=bar) to visualization'. There are other ways to visualize the relationship of this category with other variables. 
+Since Color is a binary category (White or Not), it needs 'a [specialized approach](https://seaborn.pydata.org/tutorial/categorical.html?highlight=bar) to visualization'. There are other ways to visualize the relationship of this category with other variables.
 
 You can visualize variables side-by-side with Seaborn plots.
 
 1. Try a 'swarm' plot to show the distribution of values:
 
-    ```python
-    palette = {
-    0: 'orange',
-    1: 'wheat'
-    }
-    sns.swarmplot(x="Color", y="ord__Item Size", data=encoded_pumpkins, palette=palette)
-    ```
+   ```python
+   palette = {
+   0: 'orange',
+   1: 'wheat'
+   }
+   sns.swarmplot(x="Color", y="ord__Item Size", data=encoded_pumpkins, palette=palette)
+   ```
 
-    ![A swarm of visualized data](images/swarm_2.png)
+   ![A swarm of visualized data](images/swarm_2.png)
 
 **Watch Out**: the code above might generate a warning, since seaborn fails to represent such amount of datapoints into a swam plot. A possible solution is decreasing the size of the marker, by using the 'size' parameter. However, be aware that this affects the readability of the plot.
-
 
 > **🧮 Show Me The Math**
 >
@@ -231,51 +237,51 @@ Building a model to find these binary classification is surprisingly straightfor
 
 1. Select the variables you want to use in your classification model and split the training and test sets calling `train_test_split()`:
 
-    ```python
-    from sklearn.model_selection import train_test_split
-    
-    X = encoded_pumpkins[encoded_pumpkins.columns.difference(['Color'])]
-    y = encoded_pumpkins['Color']
+   ```python
+   from sklearn.model_selection import train_test_split
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
-    
-    ```
+   X = encoded_pumpkins[encoded_pumpkins.columns.difference(['Color'])]
+   y = encoded_pumpkins['Color']
+
+   X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+
+   ```
 
 2. Now you can train your model, by calling `fit()` with your training data, and print out its result:
 
-    ```python
-    from sklearn.metrics import f1_score, classification_report 
-    from sklearn.linear_model import LogisticRegression
+   ```python
+   from sklearn.metrics import f1_score, classification_report
+   from sklearn.linear_model import LogisticRegression
 
-    model = LogisticRegression()
-    model.fit(X_train, y_train)
-    predictions = model.predict(X_test)
+   model = LogisticRegression()
+   model.fit(X_train, y_train)
+   predictions = model.predict(X_test)
 
-    print(classification_report(y_test, predictions))
-    print('Predicted labels: ', predictions)
-    print('F1-score: ', f1_score(y_test, predictions))
-    ```
+   print(classification_report(y_test, predictions))
+   print('Predicted labels: ', predictions)
+   print('F1-score: ', f1_score(y_test, predictions))
+   ```
 
-    Take a look at your model's scoreboard. It's not bad, considering you have only about 1000 rows of data:
+   Take a look at your model's scoreboard. It's not bad, considering you have only about 1000 rows of data:
 
-    ```output
-                       precision    recall  f1-score   support
-    
-                    0       0.94      0.98      0.96       166
-                    1       0.85      0.67      0.75        33
-    
-        accuracy                                0.92       199
-        macro avg           0.89      0.82      0.85       199
-        weighted avg        0.92      0.92      0.92       199
-    
-        Predicted labels:  [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 1 0 0 0 0 0 0 0 0 1 0 0 0 0
-        0 0 0 0 0 1 0 1 0 0 1 0 0 0 0 0 1 0 1 0 1 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-        1 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 1 0 1 0 0 0 0 0 0 0 1 0
-        0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 1 0 0 0 1 1 0
-        0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1
-        0 0 0 1 0 0 0 0 0 0 0 0 1 1]
-        F1-score:  0.7457627118644068
-    ```
+   ```output
+                      precision    recall  f1-score   support
+
+                   0       0.94      0.98      0.96       166
+                   1       0.85      0.67      0.75        33
+
+       accuracy                                0.92       199
+       macro avg           0.89      0.82      0.85       199
+       weighted avg        0.92      0.92      0.92       199
+
+       Predicted labels:  [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 1 0 0 0 0 0 0 0 0 1 0 0 0 0
+       0 0 0 0 0 1 0 1 0 0 1 0 0 0 0 0 1 0 1 0 1 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+       1 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 1 0 1 0 0 0 0 0 0 0 1 0
+       0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 1 0 0 0 1 1 0
+       0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1
+       0 0 0 1 0 0 0 0 0 0 0 0 1 1]
+       F1-score:  0.7457627118644068
+   ```
 
 ## Better comprehension via a confusion matrix
 
@@ -285,30 +291,30 @@ While you can get a scoreboard report [terms](https://scikit-learn.org/stable/mo
 
 1. To use a confusion metrics, call `confusion_matrix()`:
 
-    ```python
-    from sklearn.metrics import confusion_matrix
-    confusion_matrix(y_test, predictions)
-    ```
+   ```python
+   from sklearn.metrics import confusion_matrix
+   confusion_matrix(y_test, predictions)
+   ```
 
-    Take a look at your model's confusion matrix:
+   Take a look at your model's confusion matrix:
 
-    ```output
-    array([[162,   4],
-           [ 11,  22]])
-    ```
+   ```output
+   array([[162,   4],
+          [ 11,  22]])
+   ```
 
 In Scikit-learn, confusion matrices Rows (axis 0) are actual labels and columns (axis 1) are predicted labels.
 
-|       |   0   |   1   |
-| :---: | :---: | :---: |
-|   0   |  TN   |  FP   |
-|   1   |  FN   |  TP   |
+|     |  0  |  1  |
+| :-: | :-: | :-: |
+|  0  | TN  | FP  |
+|  1  | FN  | TP  |
 
 What's going on here? Let's say our model is asked to classify pumpkins between two binary categories, category 'white' and category 'not-white'.
 
 - If your model predicts a pumpkin as not white and it belongs to category 'not-white' in reality we call it a true negative, shown by the top left number.
-- If your model predicts a pumpkin as white and it belongs to category 'not-white' in reality we call it a false negative, shown by the bottom left number. 
-- If your model predicts a pumpkin as not white and it belongs to category 'white' in reality we call it a false positive, shown by the top right number. 
+- If your model predicts a pumpkin as white and it belongs to category 'not-white' in reality we call it a false negative, shown by the bottom left number.
+- If your model predicts a pumpkin as not white and it belongs to category 'white' in reality we call it a false positive, shown by the top right number.
 - If your model predicts a pumpkin as white and it belongs to category 'white' in reality we call it a true positive, shown by the bottom right number.
 
 As you might have guessed it's preferable to have a larger number of true positives and true negatives and a lower number of false positives and false negatives, which implies that the model performs better.
@@ -319,7 +325,7 @@ Precision = tp / (tp + fp) = 22 / (22 + 4) = 0.8461538461538461
 
 Recall = tp / (tp + fn) = 22 / (22 + 11) = 0.6666666666666666
 
-✅ Q: According to the confusion matrix, how did the model do? A: Not bad; there are a good number of true negatives but also a few false negatives. 
+✅ Q: According to the confusion matrix, how did the model do? A: Not bad; there are a good number of true negatives but also a few false negatives.
 
 Let's revisit the terms we saw earlier with the help of the confusion matrix's mapping of TP/TN and FP/FN:
 
@@ -327,7 +333,7 @@ Let's revisit the terms we saw earlier with the help of the confusion matrix's m
 
 🎓 Recall: TP/(TP + FN) The fraction of relevant instances that were retrieved, whether well-labeled or not
 
-🎓 f1-score: (2 * precision * recall)/(precision + recall) A weighted average of the precision and recall, with best being 1 and worst being 0
+🎓 f1-score: (2 _ precision _ recall)/(precision + recall) A weighted average of the precision and recall, with best being 1 and worst being 0
 
 🎓 Support: The number of occurrences of each label retrieved
 
@@ -375,11 +381,13 @@ Finally, use Scikit-learn's [`roc_auc_score` API](https://scikit-learn.org/stabl
 auc = roc_auc_score(y_test,y_scores[:,1])
 print(auc)
 ```
-The result is `0.9749908725812341`. Given that the AUC ranges from 0 to 1, you want a big score, since a model that is 100% correct in its predictions will have an AUC of 1; in this case, the model is _pretty good_. 
+
+The result is `0.9749908725812341`. Given that the AUC ranges from 0 to 1, you want a big score, since a model that is 100% correct in its predictions will have an AUC of 1; in this case, the model is _pretty good_.
 
 In future lessons on classifications, you will learn how to iterate to improve your model's scores. But for now, congratulations! You've completed these regression lessons!
 
 ---
+
 ## 🚀Challenge
 
 There's a lot more to unpack regarding logistic regression! But the best way to learn is to experiment. Find a dataset that lends itself to this type of analysis and build a model with it. What do you learn? tip: try [Kaggle](https://www.kaggle.com/search?q=logistic+regression+datasets) for interesting datasets.
@@ -390,6 +398,6 @@ There's a lot more to unpack regarding logistic regression! But the best way to 
 
 Read the first few pages of [this paper from Stanford](https://web.stanford.edu/~jurafsky/slp3/5.pdf) on some practical uses for logistic regression. Think about tasks that are better suited for one or the other type of regression tasks that we have studied up to this point. What would work best?
 
-## Assignment 
+## Assignment
 
 [Retrying this regression](assignment.md)
